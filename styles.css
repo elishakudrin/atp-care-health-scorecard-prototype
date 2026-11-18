@@ -78,8 +78,8 @@ button {
   width: 48px;
   height: 48px;
   object-fit: contain;
-  border-radius: 0;
-  box-shadow: none;
+  border-radius: 50%;
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.14);
 }
 
 .logo-lockup span,
@@ -914,125 +914,4 @@ button {
   .thumbnail-grid {
     grid-template-columns: repeat(4, minmax(0, 1fr));
   }
-}
-
-/* Mobile-first fitment pass: visual rules only; no changes to form workflows. */
-html { -webkit-text-size-adjust: 100%; }
-body, .app-shell, .screen, .panel, .report, .context-card, .summary-card { min-width: 0; }
-button, input, select, textarea { max-width: 100%; }
-button, .file-label { -webkit-tap-highlight-color: transparent; }
-button:focus-visible, .file-label:focus-within, input:focus-visible,
-select:focus-visible, textarea:focus-visible {
-  outline: 3px solid var(--gold);
-  outline-offset: 2px;
-}
-.app-header {
-  grid-template-columns: minmax(56px, 76px) minmax(0, 1fr) minmax(56px, 76px);
-  gap: 6px;
-}
-.logo-lockup {
-  width: fit-content;
-  max-width: 100%;
-  min-width: 0;
-}
-.logo-lockup img, .report-brand img {
-  flex: 0 0 auto;
-  object-fit: contain;
-  border-radius: 0;
-  box-shadow: none;
-  background: transparent;
-}
-.logo-lockup strong { white-space: normal; overflow-wrap: break-word; }
-.nav-button {
-  width: 100%;
-  min-width: 0;
-  min-height: 44px;
-  white-space: normal;
-  overflow-wrap: break-word;
-  line-height: 1.15;
-  text-align: center;
-}
-.primary-button, .secondary-button, .ghost-button, .choice, .pill-button {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 0;
-  max-width: 100%;
-  min-height: 48px;
-  text-align: center;
-  white-space: normal;
-  overflow-wrap: anywhere;
-  line-height: 1.25;
-}
-.primary-button, .secondary-button, .ghost-button { width: 100%; }
-.actions, .photo-actions, .choice-grid, .condition-grid, .form-grid,
-.details-grid, .context-grid, .summary-grid, .history-grid, .report-grid,
-.report-card-head, .summary-main { min-width: 0; }
-.actions > *, .photo-actions > *, .choice-grid > *, .condition-grid > *,
-.form-grid > *, .details-grid > *, .context-grid > *,
-.summary-grid > *, .history-grid > *, .report-grid > * { min-width: 0; }
-.selector-card { grid-template-columns: minmax(0, 1fr) auto; }
-.context-row { grid-template-columns: minmax(76px, 92px) minmax(0, 1fr); }
-.summary-main { grid-template-columns: 70px minmax(0, 1fr); }
-.report-card-head { grid-template-columns: 92px minmax(0, 1fr); }
-.timeline-row { grid-template-columns: minmax(0, 1fr) auto; }
-.category-title > *, .context-row > *, .report-brand > *, .summary-main > *,
-.report-card-head > *, .timeline-row > *, .selected-strip li > *,
-.mini-list li > * { min-width: 0; overflow-wrap: anywhere; }
-.file-label {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 0;
-  min-height: 48px;
-  text-align: center;
-  line-height: 1.25;
-  overflow-wrap: anywhere;
-  cursor: pointer;
-}
-.file-label:active, button:active { transform: translateY(1px); }
-.field input, .field select, .field textarea {
-  min-width: 0;
-  font-size: 16px; /* Avoid iOS focus zoom while entering service details. */
-}
-.score-panel input[type="range"] { min-height: 44px; }
-.toast { bottom: calc(14px + env(safe-area-inset-bottom, 0px)); }
-
-@media (max-width: 480px) {
-  .app-shell { padding: 8px 10px calc(24px + env(safe-area-inset-bottom, 0px)); }
-  .app-header {
-    grid-template-columns: minmax(54px, 60px) minmax(0, 1fr) minmax(54px, 60px);
-    padding: 7px 0 10px;
-    gap: 5px;
-  }
-  .logo-lockup { gap: 6px; }
-  .logo-lockup img { width: 42px; height: 42px; }
-  .logo-lockup span { font-size: .62rem; letter-spacing: .045em; }
-  .logo-lockup strong { font-size: .87rem; line-height: 1.12; }
-  .nav-button { padding: 8px 5px; font-size: .78rem; }
-  .screen { gap: 13px; }
-  .screen-head h1 { font-size: clamp(1.85rem, 8vw, 2.4rem); }
-  .screen-head h2 { font-size: clamp(1.7rem, 7.2vw, 2.2rem); }
-  .panel, .context-card, .summary-card, .report-card, .history-card { padding: 13px; }
-  .report-hero { padding: 16px 13px; }
-  .report-brand img { width: 42px; height: 42px; }
-  .selector-card { gap: 8px; padding: 12px; }
-  .choice-grid, .condition-grid { gap: 8px; }
-  .choice { padding: 11px 9px; min-height: 52px; }
-  .condition-grid .choice { min-height: 62px; }
-  .status-chip, .score-row { max-width: 100%; }
-}
-@media (max-width: 340px) {
-  .app-header { grid-template-columns: 51px minmax(0, 1fr) 51px; }
-  .logo-lockup { gap: 4px; }
-  .logo-lockup img { width: 34px; height: 34px; }
-  .logo-lockup span { font-size: .58rem; }
-  .logo-lockup strong { font-size: .78rem; }
-  .nav-button { font-size: .7rem; padding: 7px 3px; }
-  .choice-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
-  .context-row { grid-template-columns: 70px minmax(0, 1fr); gap: 8px; }
-}
-@media (prefers-reduced-motion: reduce) {
-  .toast { transition: none; }
-  .file-label:active, button:active { transform: none; }
 }
