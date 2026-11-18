@@ -637,7 +637,7 @@ function renderReport() {
     <article class="report">
       <div class="report-hero">
         <div class="report-brand">
-          <img src="assets/atp-logo-official.png" alt="Appliance Tech Pros logo">
+          <img src="assets/atp-logo-transparent.png" alt="Appliance Tech Pros logo">
           <div>
             <span class="eyebrow">ATP Care</span>
             <h1>Appliance Health Report</h1>
