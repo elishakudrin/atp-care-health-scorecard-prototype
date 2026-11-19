@@ -1374,3 +1374,15 @@ button:focus-visible,.file-label:focus-within {outline:3px solid var(--gold);out
   .app-header #historyButton { min-width: 70px; padding: 8px 10px; font-size: 11px; }
   .screen-head h2 { font-size: clamp(25px, 7vw, 30px); }
 }
+
+
+/* Suppress browser outline on programmatically focused page landmark only. */
+/* #app is programmatically focused after each step for accessibility.
+   The browser's default focus ring surrounds the entire main region,
+   creating the unwanted blue rectangle visible on iPhones.
+   Keep all focus styles for actual interactive controls. */
+#app:focus,
+#app:focus-visible {
+  outline: none;
+  box-shadow: none;
+}
