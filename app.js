@@ -385,7 +385,7 @@ function renderDetails() {
   app.innerHTML = progressShell(`
     ${applianceHead("Appliance Details")}
     ${itemData.scopeReview ? `<div class="disclaimer">Service scope confirmation required for this appliance type before operational use.</div>` : ""}
-    <form class="panel" data-form="details">
+    <form class="panel" data-form="details" id="details-form">
       <div class="screen-head section-title">
         <span class="eyebrow">Appliance Information</span>
         <h3>Appliance Information</h3>
@@ -397,11 +397,11 @@ function renderDetails() {
         ${field("Serial Number - Optional", "serial", record.serial)}
         ${field("Approximate Age", "age", record.age)}
       </div>
-      <button class="primary-button inline-submit" type="submit">Continue</button>
     </form>
     ${multiPhotoGallery("Appliance Photos", "appliancePhotos", record.appliancePhotos, "Front of appliance")}
     ${multiPhotoGallery("Model / Serial Tag Photos", "tagPhotos", record.tagPhotos, "Model tag")}
     ${multiPhotoGallery("Issue / Condition Photos - Optional", "issuePhotos", record.issuePhotos, "Door gasket wear")}
+    <button class="primary-button inline-submit" type="submit" form="details-form">Continue to Questions</button>
   `, applianceProgress(34), applianceLabel());
 }
 
