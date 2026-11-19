@@ -3,19 +3,10 @@ const backButton = document.querySelector("#backButton");
 const historyButton = document.querySelector("#historyButton");
 const toast = document.querySelector("#toast");
 
-const today = new Intl.DateTimeFormat("en-US", {
-  month: "long",
-  day: "numeric",
-  year: "numeric"
-}).format(new Date());
-
-const demo = {
-  customerName: "Demo Customer",
-  address: "100 Sample Home Lane, Atlanta, GA 30328",
-  email: "demo.customer@example.com",
-  phone: "(555) 010-2700",
-  technician: "Alex Rivera",
-  date: today
+const now = new Date();
+const today = [now.getFullYear(), String(now.getMonth() + 1).padStart(2, "0"), String(now.getDate()).padStart(2, "0")].join("-");
+const emptyVisit = {
+  customerName: "", address: "", email: "", phone: "", technician: "", date: today
 };
 
 const categories = [
@@ -173,7 +164,10 @@ const state = {
   history: [],
   activeCategory: "Common",
   search: "",
-  visit: { ...demo },
+  visit: { ...emptyVisit },
+  readyPdf: null,
+  pdfPreparing: false,
+  sessionReports: [],
   selectedIds: [],
   currentIndex: 0,
   appliances: {}
@@ -204,10 +198,10 @@ function createRecord(id) {
   return {
     id,
     type: entry.name,
-    brand: demoBrand(entry.family),
-    model: demoModel(entry.family),
+    brand: "",
+    model: "",
     serial: "",
-    age: "5 years",
+    age: "",
     appliancePhotos: [],
     tagPhotos: [],
     issuePhotos: [],
@@ -217,6 +211,7 @@ function createRecord(id) {
     suggestedScore: 8.6,
     confirmedScore: 8.6,
     status: "Minor Maintenance Recommended",
+    assessmentConfirmed: false,
     notes: "",
     followUpNote: "",
     serviceRecommended: "No",
@@ -224,37 +219,7 @@ function createRecord(id) {
   };
 }
 
-function demoBrand(family) {
-  return {
-    refrigerator: "KitchenAid",
-    dishwasher: "Bosch",
-    washer: "LG",
-    dryer: "LG",
-    range: "GE Profile",
-    cooktop: "Thermador",
-    oven: "Monogram",
-    ice: "Whirlpool",
-    wine: "Sub-Zero",
-    ventilation: "Broan",
-    other: "Demo Brand"
-  }[family] || "Demo Brand";
-}
 
-function demoModel(family) {
-  return {
-    refrigerator: "KRFC-DEMO-22",
-    dishwasher: "SHP-DEMO-800",
-    washer: "WM-DEMO-45",
-    dryer: "DLE-DEMO-45",
-    range: "PSE-DEMO-30",
-    cooktop: "CT-DEMO-36",
-    oven: "WO-DEMO-30",
-    ice: "IM-DEMO-15",
-    wine: "WS-DEMO-42",
-    ventilation: "HD-DEMO-36",
-    other: "ATP-DEMO"
-  }[family] || "ATP-DEMO";
-}
 
 function setScreen(screen) {
   state.history.push(state.screen);
@@ -309,15 +274,13 @@ function contextRows() {
 }
 
 function renderStart() {
-  app.innerHTML = progressShell(`
-    <div class="screen-head">
-      <span class="eyebrow">ATP Care</span>
-      <h1>Appliance Healthscore Card</h1>
-      <p>Start the visit with clear customer, location, technician, and date context.</p>
-    </div>
-    ${contextRows()}
-    <button class="primary-button" type="button" data-action="start">Start Appliance Healthscore Card</button>
-  `);
+  app.innerHTML = progressShell(
+    '<div class="welcome-intro"><p>Record appliance conditions, photos and recommendations. Prepare a professional report directly on your phone.</p></div>' +
+    '<div class="panel welcome-panel"><span class="eyebrow">New inspection</span><h3>Start a visit</h3>' +
+    '<p>Enter the customer details, select appliances, then record your findings and Health Scores.</p>' +
+    '<button class="primary-button" type="button" data-action="start">Start Visit</button></div>' +
+    '<p class="privacy-note">Reports are prepared on your device. Save and share the PDF with the customer and ATP office; this page does not automatically send or store customer reports.</p>'
+  );
 }
 
 function renderCustomer() {
@@ -325,7 +288,7 @@ function renderCustomer() {
     <div class="screen-head">
       <span class="eyebrow">Step 1</span>
       <h2>Customer & Visit</h2>
-      <p>Preview mode — review the sample visit details. Nothing is saved or sent.</p>
+      <p>Enter the customer's visit details. Your information stays on this device until you share the PDF.</p>
     </div>
     <form class="panel form-grid" data-form="visit">
       ${field("Customer Name", "customerName", state.visit.customerName)}
@@ -343,7 +306,7 @@ function field(label, name, value, type = "text") {
   return `
     <label class="field">
       <span>${label}</span>
-      <input type="${type}" name="${name}" value="${escapeHtml(value)}">
+      <input type="${name === "date" ? "date" : type}" name="${name}" value="${escapeHtml(value)}" ${["customerName", "address", "email", "phone", "technician", "date"].includes(name) ? "required" : ""}>
     </label>
   `;
 }
@@ -376,7 +339,7 @@ function renderSelect() {
     </div>
     <div class="panel">
       <div class="screen-head">
-        <h3>Today's Appliance Healthscore Card</h3>
+        <h3>Appliances for This Visit</h3>
         <p>${state.selectedIds.length} selected</p>
       </div>
       <ul class="selected-strip">
@@ -591,7 +554,7 @@ function renderReviewComplete() {
     <div class="screen-head">
       <span class="eyebrow">Final Step</span>
       <h2>Review & Complete</h2>
-      <p>Review the visit before using prototype-only completion actions.</p>
+      <p>Confirm the findings, then prepare a PDF to share with the customer and ATP office.</p>
     </div>
     ${contextRows()}
     <div class="summary-grid">
@@ -600,8 +563,15 @@ function renderReviewComplete() {
     <p class="disclaimer">This score reflects the appliance’s condition at the time of inspection and is not a guarantee against future failures.</p>
     <div class="actions">
       <button class="secondary-button" type="button" data-action="report">Preview Customer Report</button>
-      <button class="secondary-button" type="button" data-prototype-action>Generate Customer Report</button>
-      <button class="primary-button" type="button" data-prototype-action>Save & Send to Customer</button>
+      <button class="primary-button" type="button" data-action="prepare-pdf">Prepare PDF</button>
+      <button class="secondary-button" type="button" data-action="download-pdf" ${state.readyPdf ? "" : "disabled"}>Save PDF</button>
+      <button class="primary-button" type="button" data-action="share-pdf" ${state.readyPdf ? "" : "disabled"}>Share PDF</button>
+    </div>
+    <div class="report-guidance">
+      <strong>Delivery checklist</strong>
+      <p>Share the PDF with the customer and send a copy to the ATP office at atpcaresupport@gmail.com. No automatic emails or cloud backups are enabled.</p>
+      <p>Customer email: <b>${escapeHtml(state.visit.email)}</b></p>
+      <button class="ghost-button" type="button" data-action="copy-recipients">Copy customer + office email addresses</button>
     </div>
   `, 100, "Complete");
 }
@@ -685,39 +655,20 @@ function reportCard(record) {
 }
 
 function renderHistory() {
-  const records = state.selectedIds.length ? selectedRecords() : [createRecord("refrigerator-freezer"), createRecord("dishwasher"), createRecord("electric-dryer")];
-  app.innerHTML = progressShell(`
-    <div class="screen-head">
-      <span class="eyebrow">History Concept</span>
-      <h2>Appliance Health History</h2>
-      <p>Each completed health check is a separate dated record. Previous inspections are not overwritten.</p>
-    </div>
-    <div class="history-grid">
-      ${records.map(historyCard).join("")}
-    </div>
-  `);
-}
-
-function historyCard(record) {
-  const rows = [
-    ["Aug 13, 2026", record.confirmedScore || 9.2, record.status || "Operating Normally Today"],
-    ["Aug 10, 2027", 8.7, "Monitor"],
-    ["Aug 15, 2028", 8.4, "Monitor"]
-  ];
-  return `
-    <article class="history-card">
-      <span class="eyebrow">${escapeHtml(record.brand)}</span>
-      <h3>${escapeHtml(record.type)}</h3>
-      <div class="timeline">
-        ${rows.map(([date, score, status]) => `
-          <div class="timeline-row">
-            <span><strong>${date}</strong><br><span class="muted">${status}</span></span>
-            <span class="score-chip">${Number(score).toFixed(1)} / 10</span>
-          </div>
-        `).join("")}
-      </div>
-    </article>
-  `;
+  const prepared = state.sessionReports;
+  const cards = prepared.length ? prepared.map((r) =>
+    '<article class="history-card"><span class="eyebrow">Prepared PDF</span>' +
+    '<h3>' + escapeHtml(r.customerName) + '</h3>' +
+    '<p class="muted">' + escapeHtml(r.preparedAt) + ' · ' + r.applianceCount + ' appliance(s)</p>' +
+    '<p class="muted">A PDF copy exists only in this open tab unless saved or shared.</p>' +
+    '<button class="secondary-button" type="button" data-action="restore-session-pdf" data-session-index="' + prepared.indexOf(r) + '">Use this PDF</button></article>'
+  ).join("") : '<div class="panel"><p class="muted">No reports have been prepared in this browser tab.</p></div>';
+  app.innerHTML = progressShell(
+    '<div class="screen-head"><span class="eyebrow">This Session Only</span><h2>Prepared Reports</h2>' +
+    '<p>These are temporary copies, not permanent customer history. Save and send each PDF to ATP for recordkeeping.</p></div>' +
+    '<div class="history-grid">' + cards + '</div>' +
+    '<button class="primary-button" type="button" data-action="new-visit">Start New Visit</button>'
+  );
 }
 
 function updateSuggestedScore(record, preserveManual = false) {
@@ -744,12 +695,114 @@ function saveNotes() {
 
 function nextAfterAppliance() {
   saveNotes();
+  const record = currentRecord();
+  if (!record.assessmentConfirmed) { showToast("Confirm the condition and score before continuing."); return; }
+  if (!record.notes.trim()) { showToast("Add findings and recommendations before continuing."); return; }
+  invalidatePreparedPdf();
   if (state.currentIndex < state.selectedIds.length - 1) {
     state.currentIndex += 1;
     setScreen("details");
   } else {
     setScreen("review");
   }
+}
+
+
+function invalidatePreparedPdf() { state.readyPdf = null; }
+
+function sessionIssue() {
+  for (const [field, label] of [
+    ["customerName", "Customer name"], ["address", "Service address"],
+    ["email", "Customer email"], ["phone", "Customer phone"],
+    ["technician", "Technician name"], ["date", "Inspection date"]
+  ]) if (!String(state.visit[field] || "").trim()) return label + " is required.";
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(state.visit.email)) return "Enter a valid customer email address.";
+  if (!state.selectedIds.length) return "Select at least one appliance.";
+  for (const record of selectedRecords()) {
+    if (!record.assessmentConfirmed) return "Confirm the condition and score of " + record.type + ".";
+    if (!record.notes.trim()) return "Enter findings and recommendations for " + record.type + ".";
+  }
+  return "";
+}
+
+async function preparePdf() {
+  if (state.pdfPreparing) return;
+  const issue = sessionIssue();
+  if (issue) { showToast(issue); return; }
+  state.pdfPreparing = true;
+  const button = document.querySelector('[data-action="prepare-pdf"]');
+  if (button) { button.disabled = true; button.textContent = "Preparing PDF…"; }
+  try {
+    const pdf = await window.ATPReportExport.generate(state.visit, selectedRecords());
+    state.readyPdf = pdf;
+    state.sessionReports.unshift({
+      customerName: state.visit.customerName,
+      applianceCount: state.selectedIds.length,
+      preparedAt: new Date().toLocaleString(),
+      pdf
+    });
+    state.sessionReports = state.sessionReports.slice(0, 3);
+    renderReviewComplete();
+    showToast("PDF ready. Now save it and share with customer + ATP office.");
+  } catch (error) {
+    showToast(error && error.message ? error.message : "PDF could not be generated.");
+    if (button) { button.disabled = false; button.textContent = "Prepare PDF"; }
+  } finally { state.pdfPreparing = false; }
+}
+
+function downloadPdf() {
+  if (!state.readyPdf) { showToast("Prepare the PDF first."); return; }
+  const url = URL.createObjectURL(state.readyPdf.blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = state.readyPdf.fileName;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 45000);
+  showToast("PDF saved/downloaded. Send it to customer and ATP office.");
+}
+
+async function sharePdf() {
+  if (!state.readyPdf) { showToast("Prepare the PDF first."); return; }
+  const result = state.readyPdf;
+  const file = new File([result.blob], result.fileName, { type: "application/pdf" });
+  if (navigator.share && (!navigator.canShare || navigator.canShare({ files: [file] }))) {
+    try {
+      await navigator.share({
+        files: [file],
+        title: "ATP Appliance Healthscore Card",
+        text: "Inspection report from Appliance Tech Pros. Copy ATP's office at " + result.officeEmail + "."
+      });
+      showToast("Verify the report was sent to both customer and ATP office.");
+      return;
+    } catch (err) {
+      if (err && err.name === "AbortError") return;
+    }
+  }
+  downloadPdf();
+  showToast("Saved the PDF. Attach it to an email to the customer and ATP office.");
+}
+
+async function copyRecipients() {
+  const addresses = [state.visit.email, window.ATPReportExport.OFFICE_EMAIL].filter(Boolean).join(", ");
+  try {
+    await navigator.clipboard.writeText(addresses);
+    showToast("Both email addresses copied.");
+  } catch { showToast("Use customer email and atpcaresupport@gmail.com."); }
+}
+
+function newVisit() {
+  state.history = [];
+  state.visit = { ...emptyVisit, date: [
+    new Date().getFullYear(),
+    String(new Date().getMonth() + 1).padStart(2, "0"),
+    String(new Date().getDate()).padStart(2, "0")
+  ].join("-") };
+  state.activeCategory = "Common"; state.search = "";
+  state.selectedIds = []; state.currentIndex = 0; state.appliances = {};
+  state.readyPdf = null;
+  setScreen("customer");
 }
 
 function render() {
@@ -783,6 +836,7 @@ document.addEventListener("click", (event) => {
   }
 
   if (button.dataset.toggle) {
+    invalidatePreparedPdf();
     const id = button.dataset.toggle;
     state.selectedIds = state.selectedIds.includes(id)
       ? state.selectedIds.filter((selected) => selected !== id)
@@ -819,6 +873,7 @@ document.addEventListener("click", (event) => {
     const concern = document.querySelector("[data-concern]");
     if (concern) currentRecord().concern = concern.value.trim();
     updateSuggestedScore(currentRecord());
+    invalidatePreparedPdf();
     setScreen("score");
   }
 
@@ -826,11 +881,14 @@ document.addEventListener("click", (event) => {
     const record = currentRecord();
     record.overallCondition = button.dataset.condition;
     updateSuggestedScore(record);
+    record.assessmentConfirmed = true;
+    invalidatePreparedPdf();
     renderScoreNotes();
   }
 
   if (button.dataset.service) {
     currentRecord().serviceRecommended = button.dataset.service;
+    invalidatePreparedPdf();
     document.querySelectorAll("[data-service]").forEach((choice) => choice.classList.remove("active"));
     button.classList.add("active");
   }
@@ -838,6 +896,7 @@ document.addEventListener("click", (event) => {
   if (button.dataset.removePhoto) {
     const [group, index] = button.dataset.removePhoto.split(":");
     currentRecord()[group].splice(Number(index), 1);
+    invalidatePreparedPdf();
     renderDetails();
   }
 
@@ -849,14 +908,25 @@ document.addEventListener("click", (event) => {
   if (button.dataset.action === "back-to-details") renderDetails();
   if (button.dataset.action === "save-appliance") nextAfterAppliance();
   if (button.dataset.action === "report") setScreen("report");
-  if (button.dataset.prototypeAction !== undefined) showToast("Prototype only - no customer data was sent.");
+  if (button.dataset.action === "prepare-pdf") { preparePdf(); return; }
+  if (button.dataset.action === "download-pdf") { downloadPdf(); return; }
+  if (button.dataset.action === "share-pdf") { sharePdf(); return; }
+  if (button.dataset.action === "copy-recipients") { copyRecipients(); return; }
+  if (button.dataset.action === "new-visit") { newVisit(); return; }
+  if (button.dataset.action === "restore-session-pdf") {
+    const report = state.sessionReports[Number(button.dataset.sessionIndex)];
+    if (report) { state.readyPdf = report.pdf; showToast("PDF ready to save or share from the Review page."); setScreen("review"); }
+    return;
+  }
 });
 
 document.addEventListener("submit", (event) => {
   event.preventDefault();
   const form = event.target;
   if (form.dataset.form === "visit") {
+    if (!form.reportValidity()) return;
     state.visit = Object.fromEntries(new FormData(form).entries());
+    invalidatePreparedPdf();
     setScreen("select");
   }
   if (form.dataset.form === "details") {
@@ -867,11 +937,17 @@ document.addEventListener("submit", (event) => {
     record.model = data.get("model");
     record.serial = data.get("serial");
     record.age = data.get("age");
+    invalidatePreparedPdf();
     setScreen("questions");
   }
 });
 
 document.addEventListener("input", (event) => {
+  const target = event.target;
+  if (target.name && target.closest('[data-form="visit"]')) { state.visit[target.name] = target.value; invalidatePreparedPdf(); }
+  if (target.name && target.closest('[data-form="details"]')) { currentRecord()[target.name] = target.value; invalidatePreparedPdf(); }
+  if (target.matches("[data-notes]")) { currentRecord().notes = target.value; invalidatePreparedPdf(); }
+  if (target.matches("[data-concern]")) { currentRecord().concern = target.value; invalidatePreparedPdf(); }
   if (event.target.matches("[data-search]")) {
     state.search = event.target.value;
     renderSelect();
@@ -884,6 +960,8 @@ document.addEventListener("input", (event) => {
   if (event.target.matches("[data-score-slider]")) {
     const record = currentRecord();
     record.confirmedScore = Number(event.target.value);
+    record.assessmentConfirmed = true;
+    invalidatePreparedPdf();
     record.status = statusFromScore(record.confirmedScore);
     document.querySelector("#scoreValue").textContent = record.confirmedScore.toFixed(1);
     document.querySelector("#statusValue").textContent = record.status;
@@ -891,6 +969,7 @@ document.addEventListener("input", (event) => {
   if (event.target.matches("[data-photo-caption]")) {
     const [group, index] = event.target.dataset.photoCaption.split(":");
     currentRecord()[group][Number(index)].caption = event.target.value;
+    invalidatePreparedPdf();
   }
 });
 
@@ -901,6 +980,7 @@ document.addEventListener("change", (event) => {
     const reader = new FileReader();
     reader.onload = () => {
       currentRecord()[event.target.dataset.photoGroup].push({ src: reader.result, caption: "" });
+      invalidatePreparedPdf();
       renderDetails();
     };
     reader.readAsDataURL(file);
