@@ -1386,3 +1386,41 @@ button:focus-visible,.file-label:focus-within {outline:3px solid var(--gold);out
   outline: none;
   box-shadow: none;
 }
+
+/* Phone-first working report flow. Brand header remains the sole large title. */
+.welcome-intro { padding:18px 3px 7px; }
+.welcome-intro p { font-size:16px; line-height:1.54; color:#e8f3ff; max-width:51ch; }
+.welcome-panel { margin-top:8px; padding:20px; }
+.welcome-panel .eyebrow { color:#15558e; }
+.welcome-panel h3 { color:#092949; font-size:23px; line-height:1.18; margin:6px 0 10px; }
+.welcome-panel p { color:#5a758d; font-size:14px; line-height:1.5; }
+.welcome-panel .primary-button { margin-top:13px; }
+.privacy-note {
+  color:#dbeaf8; font-size:12px; line-height:1.5;
+  max-width:63ch; margin:10px 3px 14px;
+}
+.report-guidance {
+  border:1px solid rgba(186,215,238,.8);
+  border-radius:12px;
+  background:#fff;
+  box-shadow:var(--shadow);
+  color:#193451;
+  padding:18px;
+  display:grid; gap:9px;
+}
+.report-guidance strong { color:#113c61; font-size:14px; }
+.report-guidance p { margin:0; font-size:12px; line-height:1.5; color:#486983; overflow-wrap:anywhere; }
+.report-guidance .ghost-button { margin-top:3px; min-height:48px; }
+.actions {grid-template-columns:minmax(0,1fr);}
+.primary-button:disabled, .secondary-button:disabled, .ghost-button:disabled {
+  cursor:not-allowed; opacity:.55; filter:saturate(.7); box-shadow:none;
+}
+@media(min-width:700px) {
+  .actions {grid-template-columns:repeat(2,minmax(0,1fr));}
+}
+@media(max-width:699px) {
+  .welcome-intro {padding-top:15px;}
+  .welcome-panel {padding:17px;}
+  .screen-head .eyebrow {line-height:1.3;}
+  .photo-actions {grid-template-columns:minmax(0,1fr);}
+}
