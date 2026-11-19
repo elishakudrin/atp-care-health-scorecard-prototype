@@ -312,11 +312,11 @@ function renderStart() {
   app.innerHTML = progressShell(`
     <div class="screen-head">
       <span class="eyebrow">ATP Care</span>
-      <h1>Appliance Health Check</h1>
+      <h1>Appliance Healthscore Card</h1>
       <p>Start the visit with clear customer, location, technician, and date context.</p>
     </div>
     ${contextRows()}
-    <button class="primary-button" type="button" data-action="start">Start Health Check</button>
+    <button class="primary-button" type="button" data-action="start">Start Appliance Healthscore Card</button>
   `);
 }
 
@@ -376,7 +376,7 @@ function renderSelect() {
     </div>
     <div class="panel">
       <div class="screen-head">
-        <h3>Today's Health Check</h3>
+        <h3>Today's Appliance Healthscore Card</h3>
         <p>${state.selectedIds.length} selected</p>
       </div>
       <ul class="selected-strip">
