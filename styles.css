@@ -1239,3 +1239,138 @@ button:focus-visible,.file-label:focus-within {outline:3px solid var(--gold);out
   hyphens: none;
   text-wrap: balance;
 }
+
+/* ATP professional mobile header redesign — 2026-11-19
+   Keeps the approved blue honeycomb theme, original logo and app functionality.
+   The Back control gets a separate compact row so the title is not squeezed. */
+.app-header {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0 12px;
+  padding: 12px 14px 8px;
+  border-radius: 0 0 13px 13px;
+  background: linear-gradient(115deg, rgba(4,25,52,.98), rgba(10,60,108,.97));
+  box-shadow: 0 7px 21px rgba(2,20,45,.15);
+}
+.app-header > .logo-lockup {
+  grid-row: 1;
+  grid-column: 1;
+  justify-self: start;
+  justify-content: flex-start;
+  min-width: 0;
+  max-width: 100%;
+  width: auto;
+  gap: 9px;
+}
+.app-header .logo-lockup img {
+  width: 44px;
+  height: 44px;
+  flex: 0 0 44px;
+  object-fit: contain;
+}
+.app-header .logo-lockup > div { min-width: 0; }
+.app-header .logo-lockup span {
+  font-size: 10px;
+  line-height: 1.15;
+  letter-spacing: .105em;
+  color: #e6b64d;
+}
+.app-header .logo-lockup strong {
+  font-size: clamp(13px, 3.7vw, 16px);
+  line-height: 1.2;
+  font-weight: 760;
+  letter-spacing: -.015em;
+  white-space: normal;
+  overflow-wrap: normal;
+  word-break: normal;
+  hyphens: none;
+  text-wrap: pretty;
+}
+.app-header > #historyButton {
+  grid-row: 1;
+  grid-column: 2;
+  justify-self: end;
+  width: auto;
+  min-width: 78px;
+  min-height: 40px;
+  padding: 8px 12px;
+  border-radius: 999px;
+  background: rgba(255,255,255,.075);
+  border: 1px solid rgba(188,218,242,.33);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 730;
+  line-height: 1;
+  box-shadow: none;
+  white-space: nowrap;
+}
+.app-header > #backButton {
+  grid-row: 2;
+  grid-column: 1 / -1;
+  justify-self: start;
+  width: auto;
+  min-width: 0;
+  min-height: 34px;
+  max-width: 130px;
+  padding: 6px 0 2px;
+  margin-top: 3px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  font-size: 13px;
+  font-weight: 680;
+  color: #d5e7f5;
+  text-align: left;
+  justify-content: flex-start;
+  white-space: nowrap;
+}
+.app-header.is-home { grid-template-columns: minmax(0,1fr) auto; }
+.app-header.is-home > .logo-lockup { grid-column: 1; grid-row: 1; }
+.app-header.is-home > #historyButton { grid-column: 2; grid-row: 1; }
+.app-header.is-home > #backButton { display: none !important; }
+#backButton[hidden] { display: none !important; }
+
+.progress-wrap {
+  margin-top: 11px;
+  padding: 11px 13px 12px;
+  border: 1px solid rgba(208,231,251,.14);
+  border-radius: 11px;
+  background: rgba(4,30,59,.34);
+  gap: 8px;
+}
+.progress-meta {
+  font-size: 11px;
+  letter-spacing: .07em;
+  text-transform: uppercase;
+  font-weight: 760;
+  color: #e5f1fb;
+}
+.progress-meta span:last-child {
+  color: #ffd067;
+  font-weight: 850;
+  letter-spacing: 0;
+}
+.progress-track { height: 5px; background: rgba(225,242,255,.21); }
+.screen-head { gap: 8px; padding: 8px 2px 10px; }
+.screen-head h2 {
+  font-size: clamp(27px, 7.2vw, 38px);
+  font-weight: 760;
+  letter-spacing: -.02em;
+  line-height: 1.12;
+}
+.screen-head p {
+  font-size: 14px;
+  line-height: 1.47;
+  color: #dceaf7;
+  max-width: 58ch;
+}
+@media (max-width: 380px) {
+  .app-header { padding: 10px 10px 7px; gap: 0 8px; }
+  .app-header .logo-lockup img { width: 38px; height: 38px; flex-basis: 38px; }
+  .app-header > .logo-lockup { gap: 7px; }
+  .app-header .logo-lockup strong { font-size: 13px; }
+  .app-header #historyButton { min-width: 70px; padding: 8px 10px; font-size: 11px; }
+  .screen-head h2 { font-size: clamp(25px, 7vw, 30px); }
+}

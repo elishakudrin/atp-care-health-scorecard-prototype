@@ -325,7 +325,7 @@ function renderCustomer() {
     <div class="screen-head">
       <span class="eyebrow">Step 1</span>
       <h2>Customer & Visit</h2>
-      <p>Fake demo information only. Edit fields to review the flow.</p>
+      <p>Preview mode — review the sample visit details. Nothing is saved or sent.</p>
     </div>
     <form class="panel form-grid" data-form="visit">
       ${field("Customer Name", "customerName", state.visit.customerName)}
