@@ -3,6 +3,7 @@ on:
   push:
     branches:
       - scorecard-operational-pdf-20261119
+      - main
   workflow_dispatch:
 
 jobs:
