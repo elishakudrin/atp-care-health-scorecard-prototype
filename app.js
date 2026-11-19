@@ -488,7 +488,7 @@ function renderQuestions() {
   app.innerHTML = progressShell(`
     ${applianceHead("Customer Questions")}
     <div class="panel form-grid">
-      ${questions.map((question) => questionBlock(question, record.answers[question] || "Yes")).join("")}
+      ${questions.map((question) => questionBlock(question, record.answers[question] || "")).join("")}
       <label class="field">
         <span>Customer Concern Optional</span>
         <textarea data-concern placeholder="Short customer concern">${escapeHtml(record.concern)}</textarea>
@@ -661,7 +661,7 @@ function renderHistory() {
     '<h3>' + escapeHtml(r.customerName) + '</h3>' +
     '<p class="muted">' + escapeHtml(r.preparedAt) + ' · ' + r.applianceCount + ' appliance(s)</p>' +
     '<p class="muted">A PDF copy exists only in this open tab unless saved or shared.</p>' +
-    '<button class="secondary-button" type="button" data-action="restore-session-pdf" data-session-index="' + prepared.indexOf(r) + '">Use this PDF</button></article>'
+    '<button class="secondary-button" type="button" data-action="download-history-pdf" data-session-index="' + prepared.indexOf(r) + '">Save This PDF</button></article>'
   ).join("") : '<div class="panel"><p class="muted">No reports have been prepared in this browser tab.</p></div>';
   app.innerHTML = progressShell(
     '<div class="screen-head"><span class="eyebrow">This Session Only</span><h2>Prepared Reports</h2>' +
@@ -719,6 +719,7 @@ function sessionIssue() {
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(state.visit.email)) return "Enter a valid customer email address.";
   if (!state.selectedIds.length) return "Select at least one appliance.";
   for (const record of selectedRecords()) {
+    if (![...(record.appliancePhotos || []), ...(record.tagPhotos || []), ...(record.issuePhotos || [])].length) return "Add an inspection photo for " + record.type + ".";
     if (!record.assessmentConfirmed) return "Confirm the condition and score of " + record.type + ".";
     if (!record.notes.trim()) return "Enter findings and recommendations for " + record.type + ".";
   }
@@ -750,17 +751,21 @@ async function preparePdf() {
   } finally { state.pdfPreparing = false; }
 }
 
-function downloadPdf() {
-  if (!state.readyPdf) { showToast("Prepare the PDF first."); return; }
-  const url = URL.createObjectURL(state.readyPdf.blob);
+function downloadBlob(pdf) {
+  const url = URL.createObjectURL(pdf.blob);
   const link = document.createElement("a");
   link.href = url;
-  link.download = state.readyPdf.fileName;
+  link.download = pdf.fileName;
   document.body.appendChild(link);
   link.click();
   link.remove();
   setTimeout(() => URL.revokeObjectURL(url), 45000);
   showToast("PDF saved/downloaded. Send it to customer and ATP office.");
+}
+
+function downloadPdf() {
+  if (!state.readyPdf) { showToast("Prepare the PDF first."); return; }
+  downloadBlob(state.readyPdf);
 }
 
 async function sharePdf() {
@@ -913,9 +918,9 @@ document.addEventListener("click", (event) => {
   if (button.dataset.action === "share-pdf") { sharePdf(); return; }
   if (button.dataset.action === "copy-recipients") { copyRecipients(); return; }
   if (button.dataset.action === "new-visit") { newVisit(); return; }
-  if (button.dataset.action === "restore-session-pdf") {
+  if (button.dataset.action === "download-history-pdf") {
     const report = state.sessionReports[Number(button.dataset.sessionIndex)];
-    if (report) { state.readyPdf = report.pdf; showToast("PDF ready to save or share from the Review page."); setScreen("review"); }
+    if (report) downloadBlob(report.pdf);
     return;
   }
 });
@@ -937,6 +942,7 @@ document.addEventListener("submit", (event) => {
     record.model = data.get("model");
     record.serial = data.get("serial");
     record.age = data.get("age");
+    if (!String(record.brand || "").trim()) { showToast("Enter the appliance brand or write Unknown."); return; }
     invalidatePreparedPdf();
     setScreen("questions");
   }
