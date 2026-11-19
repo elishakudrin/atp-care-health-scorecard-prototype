@@ -1093,3 +1093,134 @@ button:focus-visible,.file-label:focus-within {outline:3px solid var(--gold);out
 @media (prefers-reduced-motion:reduce) {
   .toast {transition:none;}
 }
+
+/* ATP mobile header and responsive layout correction — 2026-11-19 */
+/* Explicit tracks stop the hidden Back button from shifting the logo and History. */
+.app-header {
+  display: grid;
+  grid-template-columns: 68px minmax(0,1fr) 78px;
+  align-items: center;
+  column-gap: 9px;
+}
+.app-header > #backButton {
+  grid-row: 1;
+  grid-column: 1;
+  justify-self: stretch;
+}
+.app-header > .logo-lockup {
+  grid-row: 1;
+  grid-column: 2;
+  justify-self: center;
+  min-width: 0;
+  max-width: 100%;
+  gap: 7px;
+}
+.app-header > #historyButton {
+  grid-row: 1;
+  grid-column: 3;
+  justify-self: stretch;
+}
+.app-header .logo-lockup > div { min-width: 0; }
+.app-header .logo-lockup span,
+.app-header .logo-lockup strong {
+  white-space: nowrap;
+  word-break: normal;
+  overflow-wrap: normal;
+}
+.app-header .logo-lockup strong {
+  font-size: .9rem;
+  line-height: 1.12;
+}
+.app-header .nav-button {
+  box-sizing: border-box;
+  display: flex;
+  width: 100%;
+  min-width: 0;
+  min-height: 44px;
+  max-width: 100%;
+  padding: 9px 5px;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  line-height: 1.1;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+#backButton[hidden] { display: none !important; }
+/* Intro has no Back button: give the brand space, and dock History to the right. */
+.app-header.is-home { grid-template-columns: minmax(0,1fr) auto; }
+.app-header.is-home > .logo-lockup {
+  grid-column: 1;
+  justify-self: start;
+}
+.app-header.is-home > #historyButton {
+  grid-column: 2;
+  justify-self: end;
+  width: auto;
+  min-width: 78px;
+  padding-inline: 11px;
+}
+/* All sections: prevent narrow-grid overflow, keep mobile buttons finger-sized. */
+#app, .screen, .panel, .context-card, .report, .summary-card,
+.history-card, .selector-card, .question-card, .condition-card,
+.photo-gallery, .photo-card, .photo-tile {
+  min-width: 0;
+  max-width: 100%;
+}
+.context-grid, .form-grid, .details-grid, .photo-grid, .summary-grid,
+.history-grid, .report-grid, .photo-actions, .actions,
+.choice-grid, .condition-grid, .appliance-list {
+  min-width: 0;
+}
+.context-grid > *, .form-grid > *, .details-grid > *, .photo-grid > *,
+.summary-grid > *, .history-grid > *, .report-grid > *,
+.photo-actions > *, .actions > *, .choice-grid > *, .condition-grid > * {
+  min-width: 0;
+}
+.logo-lockup img { object-fit: contain; }
+.selected-strip li, .mini-list li {
+  flex-wrap: wrap;
+  align-items: flex-start;
+  overflow-wrap: anywhere;
+}
+.primary-button, .secondary-button, .ghost-button, .choice,
+.file-label, .nav-button, .pill-button {
+  box-sizing: border-box;
+  max-width: 100%;
+  -webkit-tap-highlight-color: transparent;
+}
+.report-brand { min-width: 0; }
+.report-brand > div { min-width: 0; }
+.report-brand h1 { overflow-wrap: break-word; }
+@media (max-width: 699px) {
+  .app-header {
+    grid-template-columns: 49px minmax(0,1fr) 72px;
+    gap: 7px;
+    padding: 10px 10px;
+  }
+  .app-header > .logo-lockup { gap: 6px; }
+  .app-header .logo-lockup img { width: 38px; height: 38px; flex: 0 0 38px; }
+  .app-header .logo-lockup span { font-size: .61rem; line-height: 1; }
+  .app-header .logo-lockup strong { font-size: .88rem; line-height: 1.12; }
+  .app-header .nav-button { font-size: .76rem; padding-inline: 4px; }
+  .app-header.is-home { grid-template-columns: minmax(0,1fr) auto; }
+  .screen-head h1 { font-size: clamp(1.95rem, 8.5vw, 2.5rem); line-height: 1.06; }
+  .screen-head h2 { font-size: clamp(1.7rem, 7vw, 2.2rem); line-height: 1.08; }
+  .screen-head p { line-height: 1.5; }
+  .panel, .context-card, .summary-card, .report-card, .history-card { padding: 13px; }
+  .file-label, .primary-button, .secondary-button, .ghost-button { min-height: 48px; }
+  .photo-actions, .actions { grid-template-columns: minmax(0,1fr); }
+  .screen { min-height: calc(100dvh - 88px); }
+}
+@media (max-width: 370px) {
+  .app-header { grid-template-columns: 43px minmax(0,1fr) 67px; gap: 5px; padding: 8px 6px; }
+  .app-header.is-home { grid-template-columns: minmax(0,1fr) auto; }
+  .app-header > .logo-lockup { gap: 4px; }
+  .app-header .logo-lockup img { width: 34px; height: 34px; flex-basis: 34px; }
+  .app-header .logo-lockup span { font-size: .55rem; }
+  .app-header .logo-lockup strong { font-size: .77rem; }
+  .app-header .nav-button { font-size: .69rem; padding-inline: 2px; }
+  .app-header.is-home > #historyButton { min-width: 72px; padding-inline: 8px; }
+  .app-shell { padding-inline: 7px; }
+  .screen-head h1 { font-size: clamp(1.8rem, 8.1vw, 2.2rem); }
+}

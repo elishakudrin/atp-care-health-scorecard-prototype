@@ -754,6 +754,7 @@ function nextAfterAppliance() {
 
 function render() {
   backButton.hidden = state.screen === "start";
+  document.querySelector(".app-header").classList.toggle("is-home", state.screen === "start");
   const screens = {
     start: renderStart,
     customer: renderCustomer,
