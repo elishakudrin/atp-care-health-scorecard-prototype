@@ -1,0 +1,29 @@
+name: ATP Healthscore mobile smoke test
+on:
+  push:
+    branches:
+      - scorecard-operational-pdf-20261119
+      - main
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Check JavaScript syntax
+        run: |
+          node --check app.js
+          node --check report-export.js
+          node --check vendor/jspdf.umd.min.js
+      - name: Use preinstalled runner Chrome with Playwright
+        run: npm install --no-save playwright@1.56.1
+      - name: Test complete iPhone report flow
+        run: |
+          python3 -m http.server 8765 --bind 127.0.0.1 >/tmp/scorecard-http.log 2>&1 &
+          sleep 3
+          node tests/mobile-smoke.mjs

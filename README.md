@@ -1,88 +1,36 @@
-# ATP Care Health Scorecard Prototype
+# ATP Care — Appliance Healthscore Card
 
-Status: PLANNED prototype  
-Last updated: 2026-08-13
+## Current implementation
+The published GitHub Pages version is a **mobile-first, browser-local report creation tool**. It is not the secured Cloudflare production backend. Do not mistake a prepared or shared PDF for confirmed customer delivery or a saved Housecall Pro record.
 
-## Purpose
+### Working features
+- Enter customer, address, technician, contact and inspection date (blank for every new visit).
+- Select appliances and record brand, model, serial, estimated age and concerns.
+- Take/upload appliance, model tag and issue photos on a phone.
+- Answer inspection questions; confirm condition and technician Health Score.
+- Enter findings and recommendations for each appliance.
+- Prepare a combined, branded PDF with photos locally in the browser.
+- Save/download the PDF or use a supported phone's native **Share PDF** sheet.
+- Copy the customer and office email addresses.
+- Access prepared reports during the **same open browser tab only**.
 
-This isolated static prototype demonstrates a mobile-first ATP Care Appliance Health Check workflow for technician and owner review. It is not a production app.
+### Technician workflow
+1. Open the site on your phone. Select **Start Visit**.
+2. Enter the real customer details and choose the appliances being inspected.
+3. Add at least one photo for each inspected appliance; record brand, condition and findings.
+4. Review the results and tap **Prepare PDF**.
+5. Tap **Share PDF** (on iPhone) to send it by approved email with the customer **and** `atpcaresupport@gmail.com` included. If native sharing is unavailable, tap **Save PDF** and manually attach it to an email.
+6. Verify both recipients received their copies. Ensure the office records the report against the right HCP job.
 
-## Technician Workflow
+### Critical delivery limitations
+- **No automatic customer or office email** is sent from GitHub Pages.
+- **No durable customer history or cloud report storage** exists in this version.
+- **No Housecall Pro integration** is active.
+- The temporary report history disappears when the tab is closed or refreshed. Download/share each PDF before closing.
+- Customer data stays in the browser memory until the technician shares/downloads a report. Avoid using shared or unmanaged devices; clear browser files and downloads in line with ATP privacy procedures.
+- Do not publish customer photos, reports, or personal information into this public GitHub repository.
 
-1. Review customer, service address, technician, and inspection date.
-2. Confirm or edit fake demo visit information.
-3. Select multiple appliances from a grouped/searchable residential appliance taxonomy.
-4. Enter appliance details.
-5. Add appliance and model/serial tag photos.
-6. Add multiple optional issue/condition photos with optional captions.
-7. Answer 2-4 short appliance-specific customer questions.
-8. Select one Overall Condition for the appliance.
-9. Confirm or adjust the suggested score out of 10.
-10. Add one concise Findings & Recommendations note and mark Service Recommended Yes/No.
-11. Continue to the next appliance or final Review & Complete page.
+### Production work still required
+Production architecture and data-delivery code are held separately in `elishakudrin/atp-care-plan-system/implementation/health-scorecard-prototype/`. The secure deployment requires Cloudflare Access, verified JWT/session credentials, a D1 database, private R2 storage, validated Resend sending, and end-to-end testing before automatic delivery can be switched on.
 
-## Customer Report Workflow
-
-The customer report preview shows customer-friendly cards with appliance photo, appliance type, brand, model, approximate age, score, status, technician notes, issue photos, and Service Recommended when applicable.
-
-## Appliance Taxonomy
-
-The selector is organized by:
-
-- Common
-- Refrigeration
-- Cooking
-- Laundry
-- Dishwashing
-- Ice / Beverage
-- Ventilation
-- Specialty / Other
-
-Specialty appliances are marked `Service scope confirmation required` where ATP operational scope must be confirmed. Microwave is not listed as a standard serviced appliance. Combination/speed oven entries are explicitly labeled for ATP review when microwave functionality may be involved.
-
-## Inspection History Concept
-
-The history view demonstrates that every completed health check should become a separate dated record. Previous inspection snapshots must not be overwritten.
-
-## Future Backend Requirements
-
-- Authentication and technician identity
-- Permanent visit records
-- Child appliance inspection records
-- Score and status audit history
-- Secure photo storage
-- Offline or poor-signal handling
-- Backend validation
-- Customer report generation
-
-## Future Housecall Pro Integration
-
-Housecall Pro should remain the source of truth for customer identity, contact information, service history, payment, plan, and membership. A future production scorecard should link completed inspections back to the correct Housecall Pro customer/job without replacing Housecall Pro as source of truth.
-
-## Future Airtable Integration
-
-Airtable may be used for operating queues, manager review, reporting, follow-up, and service-recommended workflows. This prototype makes no Airtable calls.
-
-## Future Email / PDF Delivery
-
-Future production work must define branded PDF generation, customer email delivery, delivery logging, resend handling, and permanent report storage.
-
-## Future Photo Storage
-
-Prototype photos are browser-local previews only. Production photos require secure storage, thumbnail generation, access control, retention rules, and deletion policy.
-
-## Fake / Prototype-Only Items
-
-- Demo customer information
-- Demo technician
-- Demo brands and model numbers
-- Local image previews with multiple photos per appliance group
-- In-memory state
-- Suggested score logic
-- Save, report generation, and send-to-customer actions
-
-## Open Locally
-
-Open `implementation/health-scorecard-prototype/index.html` in a browser.
-
-No build step is required.
+The original ATP Care logo is used unchanged, with a transparent PNG background.
