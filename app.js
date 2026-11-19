@@ -290,7 +290,7 @@ function renderCustomer() {
       <h2>Customer & Visit</h2>
       <p>Enter the customer's visit details. Your information stays on this device until you share the PDF.</p>
     </div>
-    <form class="panel form-grid" data-form="visit">
+    <form class="panel form-grid" data-form="visit" novalidate>
       ${field("Customer Name", "customerName", state.visit.customerName)}
       ${field("Service Address", "address", state.visit.address)}
       ${field("Email", "email", state.visit.email, "email")}
@@ -696,8 +696,14 @@ function saveNotes() {
 function nextAfterAppliance() {
   saveNotes();
   const record = currentRecord();
-  if (!record.assessmentConfirmed) { showToast("Confirm the condition and score before continuing."); return; }
-  if (!record.notes.trim()) { showToast("Add findings and recommendations before continuing."); return; }
+  if (!record.assessmentConfirmed) {
+    showBlockingIssue({ screen: "score", index: state.currentIndex, field: "condition",
+      message: "Confirm the condition and Health Score for " + record.type + "." }); return;
+  }
+  if (!record.notes.trim()) {
+    showBlockingIssue({ screen: "score", index: state.currentIndex, field: "notes",
+      message: "Add findings and recommendations for " + record.type + "." }); return;
+  }
   invalidatePreparedPdf();
   if (state.currentIndex < state.selectedIds.length - 1) {
     state.currentIndex += 1;
@@ -710,26 +716,111 @@ function nextAfterAppliance() {
 
 function invalidatePreparedPdf() { state.readyPdf = null; }
 
-function sessionIssue() {
+// Return a structured location, not just a generic error string.
+function visitIssue() {
   for (const [field, label] of [
     ["customerName", "Customer name"], ["address", "Service address"],
     ["email", "Customer email"], ["phone", "Customer phone"],
     ["technician", "Technician name"], ["date", "Inspection date"]
-  ]) if (!String(state.visit[field] || "").trim()) return label + " is required.";
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(state.visit.email)) return "Enter a valid customer email address.";
-  if (!state.selectedIds.length) return "Select at least one appliance.";
-  for (const record of selectedRecords()) {
-    if (![...(record.appliancePhotos || []), ...(record.tagPhotos || []), ...(record.issuePhotos || [])].length) return "Add an inspection photo for " + record.type + ".";
-    if (!record.assessmentConfirmed) return "Confirm the condition and score of " + record.type + ".";
-    if (!record.notes.trim()) return "Enter findings and recommendations for " + record.type + ".";
+  ]) {
+    if (!String(state.visit[field] || "").trim()) {
+      return { screen: "customer", field, message: label + " is required. Fill in this field." };
+    }
   }
-  return "";
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(state.visit.email).trim())) {
+    return { screen: "customer", field: "email", message: "Enter a valid customer email address (name@example.com)." };
+  }
+  const date = String(state.visit.date || "");
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(date) || Number.isNaN(Date.parse(date))) {
+    return { screen: "customer", field: "date", message: "Choose a valid inspection date." };
+  }
+  return null;
+}
+function firstBlockingIssue() {
+  const visitProblem = visitIssue();
+  if (visitProblem) return visitProblem;
+  if (!state.selectedIds.length) {
+    return { screen: "select", field: "selection", message: "Select at least one appliance to inspect." };
+  }
+  for (let index = 0; index < state.selectedIds.length; index++) {
+    const id = state.selectedIds[index];
+    const record = state.appliances[id] ||= createRecord(id);
+    const description = record.type || catalogItem(id)?.name || "this appliance";
+    if (!String(record.brand || "").trim()) {
+      return { screen: "details", index, field: "brand", message: "Enter the brand of " + description + " (or Unknown)." };
+    }
+    if (![...(record.appliancePhotos || []), ...(record.tagPhotos || []), ...(record.issuePhotos || [])].length) {
+      return { screen: "details", index, field: "photos", message: "Add at least one inspection photo of " + description + "." };
+    }
+    if (!record.assessmentConfirmed) {
+      return { screen: "score", index, field: "condition", message: "Confirm the condition and Health Score for " + description + "." };
+    }
+    if (!String(record.notes || "").trim()) {
+      return { screen: "score", index, field: "notes", message: "Add findings and recommendations for " + description + "." };
+    }
+  }
+  return null;
+}
+
+// Highlight the exact missing control, move to its screen, and scroll it into view.
+function showBlockingIssue(issue) {
+  if (!issue) return false;
+  if (Number.isInteger(issue.index)) state.currentIndex = issue.index;
+  if (issue.screen === "select") { state.activeCategory = "Common"; state.search = ""; }
+  if (state.screen !== issue.screen) setScreen(issue.screen);
+  else render();
+  const location = {
+    customer: () => document.querySelector('[data-form="visit"] [name="' + issue.field + '"]'),
+    select: () => document.querySelector(".selector-card") || document.querySelector(".selector-tools"),
+    details: () => issue.field === "photos"
+      ? document.querySelector(".photo-gallery")
+      : document.querySelector('[data-form="details"] [name="' + issue.field + '"]'),
+    score: () => issue.field === "condition"
+      ? document.querySelector(".condition-grid .choice")
+      : document.querySelector("[data-notes]")
+  };
+  const control = location[issue.screen]?.();
+  if (!control) { showToast(issue.message); return true; }
+  const isField = issue.screen === "customer" ||
+    (issue.screen === "details" && issue.field !== "photos") ||
+    (issue.screen === "score" && issue.field === "notes");
+  const wrapper = isField ? control.closest(".field") : (
+    issue.screen === "select" ? document.querySelector(".selector-tools") :
+    issue.screen === "score" ? control.closest(".panel") :
+    control.closest(".photo-gallery")
+  );
+  const anchor = wrapper || control;
+  anchor.classList.add("validation-highlight");
+  if (isField) control.setAttribute("aria-invalid", "true");
+  const message = document.createElement("div");
+  message.className = "validation-inline-message";
+  message.setAttribute("role", "alert");
+  message.textContent = issue.message;
+  anchor.appendChild(message);
+  const focusTarget = issue.screen === "details" && issue.field === "photos"
+    ? (anchor.querySelector(".file-label.camera") || anchor)
+    : control;
+  if (!focusTarget.hasAttribute("tabindex") && focusTarget.tagName === "LABEL") {
+    focusTarget.setAttribute("tabindex", "-1");
+  }
+  requestAnimationFrame(() => {
+    anchor.scrollIntoView({ behavior: "smooth", block: "center" });
+    focusTarget.focus({ preventScroll: true });
+  });
+  return true;
+}
+function clearInlineIssue(target) {
+  const group = target.closest(".validation-highlight");
+  if (!group) return;
+  group.classList.remove("validation-highlight");
+  for (const note of group.querySelectorAll(".validation-inline-message")) note.remove();
+  target.removeAttribute("aria-invalid");
 }
 
 async function preparePdf() {
   if (state.pdfPreparing) return;
-  const issue = sessionIssue();
-  if (issue) { showToast(issue); return; }
+  const issue = firstBlockingIssue();
+  if (issue) { showBlockingIssue(issue); return; }
   state.pdfPreparing = true;
   const button = document.querySelector('[data-action="prepare-pdf"]');
   if (button) { button.disabled = true; button.textContent = "Preparing PDF…"; }
@@ -929,8 +1020,9 @@ document.addEventListener("submit", (event) => {
   event.preventDefault();
   const form = event.target;
   if (form.dataset.form === "visit") {
-    if (!form.reportValidity()) return;
     state.visit = Object.fromEntries(new FormData(form).entries());
+    const issue = visitIssue();
+    if (issue) { showBlockingIssue(issue); return; }
     invalidatePreparedPdf();
     setScreen("select");
   }
@@ -942,7 +1034,10 @@ document.addEventListener("submit", (event) => {
     record.model = data.get("model");
     record.serial = data.get("serial");
     record.age = data.get("age");
-    if (!String(record.brand || "").trim()) { showToast("Enter the appliance brand or write Unknown."); return; }
+    if (!String(record.brand || "").trim()) {
+      showBlockingIssue({ screen: "details", index: state.currentIndex, field: "brand", message: "Enter the appliance brand (or Unknown)." });
+      return;
+    }
     invalidatePreparedPdf();
     setScreen("questions");
   }
@@ -950,6 +1045,7 @@ document.addEventListener("submit", (event) => {
 
 document.addEventListener("input", (event) => {
   const target = event.target;
+  clearInlineIssue(target);
   if (target.name && target.closest('[data-form="visit"]')) { state.visit[target.name] = target.value; invalidatePreparedPdf(); }
   if (target.name && target.closest('[data-form="details"]')) { currentRecord()[target.name] = target.value; invalidatePreparedPdf(); }
   if (target.matches("[data-notes]")) { currentRecord().notes = target.value; invalidatePreparedPdf(); }

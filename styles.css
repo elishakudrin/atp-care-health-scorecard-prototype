@@ -1424,3 +1424,43 @@ button:focus-visible,.file-label:focus-within {outline:3px solid var(--gold);out
   .screen-head .eyebrow {line-height:1.3;}
   .photo-actions {grid-template-columns:minmax(0,1fr);}
 }
+
+/* Inline validation: a visible field-specific correction, not a disappearing toast. */
+.validation-highlight {
+  position: relative;
+  border-color: #d83b36 !important;
+  outline: 3px solid rgba(216, 59, 54, .9);
+  outline-offset: 3px;
+  border-radius: 9px;
+  box-shadow: 0 0 0 5px rgba(216, 59, 54, .13);
+  scroll-margin-top: 120px;
+}
+.field.validation-highlight {
+  padding: 8px;
+  background: #fff1f0;
+}
+.validation-highlight input:not([type="range"]),
+.validation-highlight textarea {
+  border: 2px solid #ce3029 !important;
+  background: #fff8f7 !important;
+}
+.validation-highlight .choice,
+.validation-highlight .file-label.camera {
+  outline-offset: -2px;
+}
+.validation-inline-message {
+  width: 100%;
+  margin-top: 8px;
+  padding: 10px 12px;
+  border: 1px solid #efb3b0;
+  border-left: 4px solid #ca322c;
+  border-radius: 7px;
+  background: #fff3f1;
+  color: #8b231e;
+  font-size: 13px;
+  font-weight: 760;
+  line-height: 1.4;
+  letter-spacing: normal;
+  text-transform: none;
+}
+.field > .validation-inline-message { display: block; }
