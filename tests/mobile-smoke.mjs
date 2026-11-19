@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import { chromium } from "playwright";
 const url = "http://127.0.0.1:8765/";
-const browser = await chromium.launch({ headless: true, args: ["--no-sandbox"] });
+const browser = await chromium.launch({ headless: true, channel: "chrome", args: ["--no-sandbox"] });
 const errors = [];
 const png = Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVQIHWP4z8DwHwAFgAI/ScL/nwAAAABJRU5ErkJggg==", "base64");
 const page = await browser.newPage({ viewport: { width: 390, height: 844 }, acceptDownloads: true });
